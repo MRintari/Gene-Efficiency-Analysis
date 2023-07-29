@@ -1,7 +1,7 @@
 # Gene-Efficiency-Analysis
 
 ## Description
-1. Save the attached zip file into a suitable folder on your computer.
+1. Download and save gene_efficiency folder into a suitable folder on your computer.
 2. To open knitted report in .html format, open main.html file found in report folder.
 3. This folder also contains the R-markdown file for this report alongside a folder containing the references for this report.
 4. Figures produced in the report can be found in the figures folder in JPEG format.
