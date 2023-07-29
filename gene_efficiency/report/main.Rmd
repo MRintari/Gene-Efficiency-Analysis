@@ -1,0 +1,221 @@
+---
+title: "An investigation into the energy efficiency of *Schizosachharomyces pombe* during transcription."
+author: "Y3888666"
+output:
+  bookdown::html_document2: default
+  bookdown::word_document2: default
+  bookdown::pdf_document2: default
+bibliography: ["references/packages.bib", "references/refs.bib"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.retina = 3)
+```
+
+```{r packages}
+source("R/load/load_packages.R")
+```
+
+# Introduction {.unnumbered #introduction}
+This investigation aims to characterise what makes a gene energetically efficient to synthesise, using gene-centric data gathered from multiple different high-throughput studies on the fission yeast *Schizosaccharomyces pombe* [@Bitton2015-qv] [@Marguerat2012-tz] [@Hasan2014-lu] [@Christiano2014-aq] [@Matsuyama2006-zn] [@Kim2010-yn]. To investigate energy efficiency, this term must first be defined and its factors must be identified. Factors that will be assessed include the `NumberIntrons`, `NumResidues`, `mRNA_copies_per_cell`, `protein_copies_per_cell`, `mRNA.stabilities`, and whether the gene is `essential`. This report was developed using Rmarkdown [@Allaire2018-qz], with importing and analysis conducted in R [@R-base], using `tidyverse` packages [@tidyverse2019] to clean the data.
+
+# Methods {.unnumbered #methods}
+
+## Data Description {.unnumbered #methods-data-description}
+
+The data can be downloaded using the following link: [fission_yeast_data.2018-11-21.Rda]("https://drive.google.com/file/d/1ziYr3zpKKxaxJ1-nTVDvzYAUMsQYgZg_/view")
+
+```{r import-data}
+source("R/load/load_data.R")
+```
+Most of the database was sourced from the Angeli website: http://bahlerweb.cs.ucl.ac.uk/cgi-bin/GLA/GLA_input. The database also includes data from Grech et al.[-@Grech2019-dw], with the data columns being described below in Table \@ref(tab:fission-yeast-data-desc):.
+
+```{r fission-yeast-data-desc}
+source("R/load/data_desc.R")
+kable(desc, caption = 'Description of data columns. *Q - Quantitative, C - Categorical')
+```
+
+## Analysis {.unnumbered #methods-analysis}
+```{r data-clean}
+source("R/analysis/data_clean.R")
+```
+
+```{r mSta-mCop}
+source("R/analysis/mSta_mCop.R")
+```
+### Identifying Energy Efficient mRNA Transcripts {.unnumbered #methods-analysis-energy-effiency}
+
+Spending a high amount of energy on the production of many mRNA transcripts that only last a short time may not be the best use of the cell's energy. To assess whether there were any energy-efficient or inefficient mRNA transcripts being produced, values of significance were first calculated by finding the values that fall outside the interval formed by the `r upper*100` and `r lower*100` percentiles, seen in Table \@ref(tab:mSta-mCop-outliers), with the results of the data visualisation seen in Figure \@ref(fig:mSta-mCop-plot).
+
+```{r mSta-mCop-outliers}
+mSta.mCop.outliers <- data.frame('Lower Percentile'=c(mCop_lower, mSta_lower),
+                         'Upper Percentile' =c(mCop_upper, mSta_upper))
+rownames(mSta.mCop.outliers) <- c("mRNA copies", "mRNA Half-Life (mins)")
+
+mSta.mCop.outliers %>% 
+  knitr::kable(caption = "Upper and lower bounds for values of significance")
+```
+
+To determine the efficiency score of the genes for these variables, the following categories were made:
+
+- Genes that produce few transcripts and have long mRNA half-lives are deemed `Very Efficient`. As mRNA production requires a large amount of energy, producing few transcripts significantly frees up energy stores for other energy-intensive activities. Furthermore, as the transcript has a long half-life, the production of more transcripts becomes less of a necessity.
+- Genes that have long mRNA half-lives that produce a standard number of transcripts or that produce few transcripts and have normal mRNA half-lives  are deemed `Efficient`.
+- Genes that find themselves producing a standard number of mRNA transcripts with normal mRNA half-lives are deemed `Standard`.
+- •	Genes that produce many mRNA transcripts but also produce transcripts with long mRNA half-lives or that produce transcripts with short mRNA half-lives but produce a small number of these transcripts are deemed `Standard`.
+- Genes that produce a standard amount of mRNA transcripts with short mRNA half-lives or that produce many mRNA transcripts with standard mRNA half-lives are deemed `Inefficient`.
+- Genes with short mRNA half-lives and that produce many transcripts are deemed `Very Inefficient`.
+
+(ref:mSta-mCop-plot) Interactive plot showing the mRNA half-life plotted against the number of mRNA transcripts per cell, with both variables being on a base-10 logarithmic scale. Values represent genes classified as either 'Very Efficient', 'Efficient', 'Standard', or 'Inefficient' dependent on their mRNA stability and mRNA copy number. The interval of significance for mRNA stability is x < 15.8, x > 101. The interval of significance for the number of mRNA transcripts is x < 0.088, x > 67.
+
+```{r mSta-mCop-plot, fig.cap='(ref:mSta-mCop-plot)'}
+source("R/plot-design/mSta-mCop_plot.R")
+ggplotly(mSta.mCop.plot)
+```
+```{r count}
+eff_count <- mSta.mCop %>% 
+  group_by(Efficiency) %>% 
+  summarise(n = length(Efficiency))
+
+n_v_eff <- eff_count[which(eff_count$Efficiency == 'Very Efficient'),]$n
+n_eff <- eff_count[which(eff_count$Efficiency == 'Efficient'),]$n
+n_ineff <- eff_count[which(eff_count$Efficiency == 'Inefficient'),]$n
+
+# Save Very Efficient Gene
+v_eff <- mSta.mCop[which(mSta.mCop$Efficiency == 'Very Efficient'),]
+```
+
+Using \@ref(fig:mSta-mCop-plot), we can identify `r n_v_eff` mRNA transcript classified as `Very Efficient`, `r v_eff$gene`, as well as `r n_eff` `Efficient` mRNA transcripts. Furthermore, `Very Inefficient` transcripts are non-existent, highlighting that *S. pombe* has succeeded in ensuring it produces transcripts that are not completely inefficient. However, `r n_ineff` transcripts can be identified as `Inefficient`, meaning `r round(n_ineff / nrow(mSta.mCop) * 100, 2)`% of *S. pombe*'s transcripts may not be utilising its energy stores as efficiently as possible. 
+
+```{r mSta-mCop-test}
+mSta.mCop.test <- cor.test(mSta.mCop$mRNA_copies_per_cell,
+                           mSta.mCop$mRNA.stabilities, method = "pearson")
+```
+
+Figure \@ref(fig:mSta-mCop-plot) appears to show a positive correlation between `mRNA.stabilities` and `mRNA_copies_per_cell`, with the production of more mRNA transcripts appearing to increase the half-life of the transcript. A Pearson's correlation coefficient test [@benesty2009pearson] can be performed, producing a correlation coefficient of `r round(mSta.mCop.test$estimate, 3)` 3 s.f., with a p-value of `r mSta.mCop.test$p.value`, proving that there is a statistically significant moderately strong positive correlation between the two variables. Furthermore, it can now be suggested that genes that are more costly on the cell's energy store during their transcription are likely to produce transcripts with a greater level of stability. It can be hypothesised that the cell is 'aware' of the amount of energy it has spent on a transcript's production, therefore the stability of the transcript increases to ensure the cell's efforts are not wasted. Furthermore, studies have shown that mRNA transcripts can be stored and not immediately translated [@Shyu2008-ch], meaning the genes would require a longer half-life to ensure later translation. This would result in the build-up of these transcripts, leading to an increase in `mRNA_copies_per_cell`. 
+
+As `r v_eff$gene` has been identified as the most energy-efficient transcript, it can be used as a benchmark for identifying the key characteristics of an energy-efficient gene, seen in Table \@ref(tab:most-efficient-gene):
+
+```{r most-efficient-gene}
+knitr::kable(t(v_eff), caption = "Table displaying properties of SPAC869.09")
+```
+
+### Genes Lacking Introns Have Shorter mRNA Half-Lives {.unnumbered #methods-analysis-zero-introns-mRNA-stability}
+
+`r v_eff$gene` does not have any introns, raising the question of whether this has any correlation with the number of mRNA copies produced and their stability.
+
+```{r intron-count}
+intron_count <- count(proteins$NumberIntrons)
+```
+`r  round((filter(intron_count, x == 0)$freq / nrow(proteins)) * 100, 1)`% of *S. pombe*'s genome lacks introns, therefore `r v_eff$gene`'s lack of introns is of no significance. However, it highlights that *S. pombe* uses half of its transcription resources to produce intronless transcripts.
+
+(ref:intron-plots) Violin plots illustrating the distribution of both the number of mRNA transcripts and the mRNA half-life in minutes of those transcripts on a base-10 logarithmic scale for genes containing introns and lacking introns.
+
+```{r intron-plots, fig.cap = "(ref:intron-plots)"}
+source("R/plot-design/intron_plots.R")
+intron_plots
+```
+```{r intron-test}
+source("R/analysis/intron_test.R")
+```
+
+Figure \@ref(fig:intron-plots) appears to not show a visual significant difference between the `mRNA.stabilities` and `mRNA_copies_per_cell` a gene produces when it has introns compared to when they do not. When performing a Wilcoxon test [@Wilcoxon1992-zi], a p-value of `r round(mCop.intron.test$p.value, 3)` (3 d.p.) is produced with a test statistic W of `r mCop.intron.test$statistic`, showing that there is a significant difference in transcript frequency. However, although significance is present, the magnitude of the difference is low (`r abs(median(lack_introns_Cop$mRNA_copies_per_cell) - median(have_introns_Cop$mRNA_copies_per_cell))`), therefore the difference will be deemed insignificant.
+
+Testing `mRNA.stabilities` between genes that have introns and genes that lack introns produces a p-value of `r mSta.intron.test$p.value` with a test statistic W of `r mSta.intron.test$statistic`, showing that there is a significant difference in half-lives. The median mRNA half-life of *S. pombe* genes that lack introns and have introns is `r round(median(lack_introns_Sta$mRNA.stabilities), 2)` (2 d.p.) and `r round(median(have_introns_Sta$mRNA.stabilities), 2)` (2 d.p.), respectively. With the presence of introns appearing to increase mRNA stability, it could be hypothesised that the assembly of the spliceosome increases mRNA stability. This is supported by a study from Lu and Cullen [-@Lu2003-vx], in which they found that the absence of introns resulted in substantially less stable mRNA transcripts. Another study by Wang et al. [-@Wang2007-up] "found that human intron-containing genes have more stable mRNAs than intron-less genes". Assembly of the spliceosome requires a significant amount of energy consumption as many proteins must be synthesised for the spliceosome to be produced, with identification and removal of introns requiring further energy consumption. Furthermore, synthesis of these introns, only for them to be spliced and degraded can be deemed as a waste of energy (albeit important for regulatory purposes), therefore the presence of introns is paradoxical to bettering a gene's energy efficiency. However, it can be argued that the presence of introns allows for alternative splicing, a process that enables a single gene to code for multiple proteins. Without introns, the cell would have to store more genes and undergo a greater degree of transcription, requiring more energy. 
+
+### More Introns Lead to Greater mRNA Stability {.unnumbered #methods-analysis-introns-mrna-stability}
+
+Visualised in Figure \@ref(fig:mSta-intron-plot) is an assessment of whether the number of introns present in a gene affects its mRNA stability.
+
+(ref:mSta-intron-plot) Interactive box plots showing the distribution of mRNA half-lives in minutes on a base-10 logarithmic scale for genes containing differing number of introns.
+
+```{r mSta-intron-plot, fig.cap = "(ref:mSta-intron-plot)"}
+source("R/plot-design/mSta-intron_plot.R")
+ggplotly(mSta.intron)
+```
+```{r mSta-intron-test}
+proteins <- transform(proteins,
+                      NumberIntrons = as.numeric(NumberIntrons))
+mSta.num_introns.test <- cor.test( ~ NumberIntrons + mRNA.stabilities, data=proteins,
+          method = "spearman",
+          continuity = FALSE,
+          conf.level = 0.95)
+```
+
+The visualisation shows a slight negative correlation between `mRNA.stabilities` and `NumberIntrons`, due to the decrease in outliers. However, the overall distribution of the data at each point appears to show a slight increase in `mRNA.stabilities` relative to `NumberIntrons`. When testing, the number of introns present must be classed as a ranked variable so that Spearman's rank correlation test can be completed [@Spearman1961-cf], revealing a significant positive correlation between `mRNA.stabilities` and `NumberIntrons`, with a p-value of `r mSta.num_introns.test$p.value`. However, the positive correlation is weak, with the sample estimate of the correlation coefficient being `r round(mSta.num_introns.test$estimate, 3)` (3 s.f.), therefore, it is not certain that the mRNA stability is affected by the assembly of spliceosomes.
+
+This is assessed further by testing for significant differences in `NumberIntrons` between `Efficient`, `Standard` and `Inefficient` genes. 
+
+```{r num-introns-eff-test}
+source("R/analysis/num_introns_eff_test.R")
+```
+A Kruskal-Wallis [@Kruskal1952-va] test produces a p-value of `r kruskal_result$p.value`, revealing that there is a significant difference between the number of introns present in `Efficient`, `Standard` and `Inefficient` genes. A post-hoc Wilcoxon Rank Sum Test produces Table \@ref(tab:post-hoc-test), with Table \@ref(tab:efficiency-medians) displaying the median values.
+
+```{r post-hoc-test}
+kable(posthoc_result$p.value, caption = "Results of post-hoc test of the Kruskal-Wallis test. 0 represents value 6.8e-12 but is displayed as 0 due to rounding.")
+```
+
+```{r efficiency-medians}
+kable(efficiency_medians, caption = "Median number of introns in efficient, inefficent and standard genes.")
+```
+
+This reveals that `Efficient` and `Standard` genes will have 1 intron on average, whereas `Inefficient` genes lack introns on average. This finding correlates with Figure \@ref(fig:intron-plots), where we found that genes that lack introns have shorter half-lives, further suggesting that lacking introns results in a gene being less efficient.
+
+### Are Non-Essential Genes More Efficient {.unnumbered #methods-analysis-essential-efficient}
+
+`r v_eff$gene` is not an `essential` gene, raising the question of whether there is a correlation between the `Efficiency` of a gene and if it is `essential` or not.
+
+(ref:ess-eff-tab) Table showing distribution of essential and non-essential genes with their efficiency grades. Very efficient gene, SPAC869.09, included as essential gene in table.
+
+```{r ess-eff-tab}
+source("R/analysis/ess_eff.R")
+kable(ess_eff_count, caption = "(ref:ess-eff-tab)")
+```
+As `essential` and `Efficiency` are both categorical variables, a Pearson's Chi-squared test can be performed [@Pearson1900]. This produces a p-value of `r round(ess_eff_chi$p.value, 3)` (3 d.p.), suggesting that there is a significant association between the two variables. This is visualised in Figure \@ref(fig:ess-eff-plot) using the `ggbarstats` function from the ggstatsplot() package [@ggstatsplot2021]. 
+
+(ref:ess-eff-plot) This figure shows the association between the Efficiency and Essential variables, alongside the following test statistics: chi-squared estimate, chi-squared p-value and Cramer's V. P-values for each efficiency group are also displayed. The Cramer's V value can be ignored as this test requires both categorical variables to have more than two levels. There are only two levels present for the Essential variable.
+
+```{r ess-eff-plot, fig.cap="(ref:ess-eff-plot)"}
+source("R/plot-design/ess-eff_plot.R")
+ess_eff.plot
+```
+From Figure \@ref(fig:ess-eff-plot), we can see that there is a significant increase in the number of non-essential genes present amongst the group of `Efficient` genes, further suggesting that non-essential genes are more efficient. As essential genes are required for the cell's survival, it can be hypothesised that they were never able to evolve to become efficient, as they became fixed in the genome due to their importance towards *S. pombe*'s survival. In contrast, non-essential genes did not need to be fixed, enabling a greater degree of adaptability in the gene to make it more efficient. As a result, the non-essential genes have become more efficient than their essential counterparts.
+
+### mRNA Half-Life Positively Correlates with Protein Copies Produced {.unnumbered #methods-analysis-mrna-stability-protein-copies}
+
+It can be predicted that the correlation that was seen between `mRNA_copies_per_cell` and `mRNA.stabilities` will translate to a correlation with `protein_copies_per_cell`. To assess this, we can visualise the relationship between the values by recreating Figure \@ref(fig:mSta-mCop-plot), however, instead of using colour to represent the efficiency of the genes, we can use colour to represent the number of proteins produced from each transcript. This can be seen in Figure \@ref(fig:mSta-mCop-pCop-plot). 
+
+(ref:mSta-mCop-pCop-plot) mRNA half-life plotted against the number of mRNA transcripts per cell, with both variables being on a base-10 logarithmic scale. Colour represents how many protein copies a gene has produced in the cell on a base-10 logarithmic scale. Each logarithmic value was then rounded to the nearest 0.5, where they were converted into ordinal variables. A strong positive correlation can be found between the number of mRNA transcripts produced and the number of protein copies produced. 
+
+```{r mSta-mCop-pCop-plot, fig.cap = "(ref:mSta-mCop-pCop-plot)"}
+source("R/plot-design/mSta-mCop-pCop_plot.R")
+mSta.mCop.pCop.plot
+```
+To test for correlations between the three variables, a Pearson's correlation test can be performed. The results of this test can be seen in Table \@ref(tab:mSta-mCop-pCop-test):
+
+```{r mSta-mCop-pCop-test}
+mSta.mCop <- subset(mSta.mCop, !is.na(protein_copies_per_cell))
+pCop_test <- cor(mSta.mCop[, c("mRNA.stabilities", "mRNA_copies_per_cell",
+                  "protein_copies_per_cell")])
+kable(pCop_test, caption = "Table showing Pearson's correlation coefficient values for mRNA half-life, mRNA transcript frequency and protein frequency.")
+```
+A correlation coefficient value of `r round(pCop_test[6], 3)` (3 s.f.) between `protein_copies_per_cell` and `mRNA_copies_per_cell` suggests that there is a strong positive correlation between the two. This is expected as it is likely that each transcript is translated into a protein. A correlation coefficient value of `r round(pCop_test[3], 3)` (3 s.f.) between `mRNA.stabilities` and `protein_copies_per_cell` suggests that there is a moderately positive correlation between the two variables, possibly due to the activity of micro-RNAs (miRNA). The number of protein copies produced from a gene may decrease when mRNA half-life decreases due to the presence of multiple miRNA target sites in the gene [@Shyu2008-ch]. If a gene has multiple miRNA target sites, then it is more likely that miRNAs will bind and degrade the mRNA, reducing its half-life and intervening in the expression of that protein. This would then result in a decrease in the number of protein copies of a gene in the cell, therefore this correlation may be powered by the presence of miRNA target sites.
+
+# Conclusion {.unnumbered #conclusion}
+In conclusion, mRNA stability appears to be the characteristic that most strongly indicates the energy efficiency of a gene in *s. pombe* during transcription. mRNA stability has a positive correlation with transcription frequency, and with the number of introns present in a gene, as supported by previous studies. Further analysis of the energy efficiency of genes during transcription would involve assessing the localisation of these proteins, and investigating if certain locations harbour genes of greater energy efficiency. A brief analysis of the energy efficiency of a gene during translation provided evidence for a correlation between the number of protein copies present and its mRNA stability. This may be due to the presence of miRNA target sites; however, further analysis would be required to assess the likelihood of this being true. Future analysis of the energy efficiency of genes during translation could focus on protein half-life and its relationship with various factors. 
+
+# Word count {.unnumbered #word-count}
+
+```{r wordcount}
+source("R/functions/word_count_function.R") # Function appears to not show correct word count, tested by importing report to Word, which produced a significantly greater word count.
+wc_main <- count_words("report/main.Rmd") 
+wc_readme <- count_words("README.md")
+```
+
+This document: `r wc_main`\
+README: `r wc_readme`\
+**Total: `r wc_main + wc_readme`**
+
+# References {#references}

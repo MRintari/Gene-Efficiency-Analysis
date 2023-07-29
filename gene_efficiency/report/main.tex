@@ -1,0 +1,152 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={An investigation into the energy efficiency of Schizosachharomyces pombe during protein synthesis.},
+  pdfauthor={Mwenda Rintari},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{An investigation into the energy efficiency of Schizosachharomyces pombe during protein synthesis.}
+\author{Mwenda Rintari}
+\date{2023-01-11}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+The biomechanism of protein synthesis causes great strain on the cell's resources (Buttgereit and Brand 1995), with Aoyagi et al.~estimating it to be 5.35 ± 0.32 kJ/g, ``corresponding to 7.52 ATPs per peptide bond synthesis on a molar basis'' (Aoyagi et al. 1988). This strain is felt most during the process of translation, with it accounting for 30\% of a differentiating mammalian cell's energy consumption and 50\% of a rapidly growing bacterium (Li et al. 2014). However, transcription is also an extremely energy intensive process, as various proteins need to be synthesised, assembled, and recruited for transcription initiation, mRNA elongation and termination of mRNA synthesis. A thesis by Dimitrios Paraschas found that the number of high energy phosphate bonds required to translate a protein was 4n-1, where n was the number of amino acids (Paraschas 2018). Therefore, it can be assumed that it is in the best interests of the cell to produce proteins that require the least amount of energy to produce, and if they do require a greater amount of energy, ensure that their expression levels remain low. Furthermore, it must be accounted for that the bioenergetic costs of a protein must be favourable to the organism for natural selection to play a role. If a protein beneficial for survival has too high an energetic burden, it will still be selected against (Lynch and Marinov 2015). This investigation aims to characterise what makes a gene energetically efficient to synthesise, using gene-centric data gathered from multiple different high-throughput studies on the fission yeast Schizosaccharomyces pombe (Bitton et al. 2015) (Marguerat et al. 2012) (Hasan et al. 2014) (Christiano et al. 2014) (Matsuyama et al. 2006) (Kim et al. 2010).
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-Aoyagi1988-ay}{}}%
+Aoyagi, Y, I Tasaki, J Okumura, and T Muramatsu. 1988. {``Energy Cost of Whole-Body Protein Synthesis Measured in Vivo in Chicks.''} \emph{Comp. Biochem. Physiol. A Comp. Physiol.} 91 (4): 765--68.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Bitton2015-qv}{}}%
+Bitton, Danny A, Falk Schubert, Shoumit Dey, Michal Okoniewski, Graeme C Smith, Sanjay Khadayate, Vera Pancaldi, Valerie Wood, and Jürg Bähler. 2015. {``{AnGeLi}: A Tool for the Analysis of Gene Lists from Fission Yeast.''} \emph{Frontiers in Genetics}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Buttgereit1995-lb}{}}%
+Buttgereit, F, and M D Brand. 1995. {``A Hierarchy of {ATP-consuming} Processes in Mammalian Cells.''} \emph{Biochem. J} 312 ( Pt 1) (Pt 1): 163--67.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Christiano2014-aq}{}}%
+Christiano, Romain, Nagarjuna Nagaraj, Florian Fröhlich, and Tobias C Walther. 2014. {``Global Proteome Turnover Analyses of the Yeasts s. Cerevisiae and s. Pombe.''} \emph{Cell Reports}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Hasan2014-lu}{}}%
+Hasan, Ayesha, Cristina Cotobal, Caia D S Duncan, and Juan Mata. 2014. {``Systematic Analysis of the Role of {RNA-binding} Proteins in the Regulation of {RNA} Stability.''} \emph{PLoS Genet.} 10 (11): e1004684.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Kim2010-yn}{}}%
+Kim, Dong-Uk, Jacqueline Hayles, Dongsup Kim, Valerie Wood, Han-Oh Park, Misun Won, Hyang-Sook Yoo, et al. 2010. {``Analysis of a Genome-Wide Set of Gene Deletions in the Fission Yeast Schizosaccharomyces Pombe.''} \emph{Nat. Biotechnol.} 28 (6): 617--23.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Li2014-ib}{}}%
+Li, Gene-Wei, David Burkhardt, Carol Gross, and Jonathan S Weissman. 2014. {``Quantifying Absolute Protein Synthesis Rates Reveals Principles Underlying Allocation of Cellular Resources.''} \emph{Cell} 157 (3): 624--35.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Lynch2015-ua}{}}%
+Lynch, Michael, and Georgi K Marinov. 2015. {``The Bioenergetic Costs of a Gene.''} \emph{Proc. Natl. Acad. Sci. U. S. A.} 112 (51): 15690--95.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Marguerat2012-tz}{}}%
+Marguerat, Samuel, Alexander Schmidt, Sandra Codlin, Wei Chen, Ruedi Aebersold, and Jürg Bähler. 2012. {``Quantitative Analysis of Fission Yeast Transcriptomes and Proteomes in Proliferating and Quiescent Cells.''} \emph{Cell} 151 (3): 671--83.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Matsuyama2006-zn}{}}%
+Matsuyama, Akihisa, Ritsuko Arai, Yoko Yashiroda, Atsuko Shirai, Ayako Kamata, Shigeko Sekido, Yumiko Kobayashi, et al. 2006. {``{ORFeome} Cloning and Global Analysis of Protein Localization in the Fission Yeast Schizosaccharomyces Pombe.''} \emph{Nat. Biotechnol.} 24 (7): 841--47.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Paraschas2018-ke}{}}%
+Paraschas, Dimitrios. 2018. {``Computational Analysis of Genomic Sequences Utilizing Machine Learning.pdf.''} Edited by Artemis Hatzigeorgiou. PhD thesis, University of Thessaly.
+
+\end{CSLReferences}
+
+\end{document}
